@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Assistant</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #f0f0f0;
+        }
+        .container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 400px;
+        }
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .output {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f1f1f1;
+            border-radius: 5px;
+            height: 100px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Voice Assistant</h2>
+        <button onclick="startListening()">Start Voice Command</button>
+        <div class="output" id="output"></div>
+    </div>
+
+    <script>
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        recognition.continuous = false;
+
+        function startListening() {
+            document.getElementById('output').innerHTML = "Listening for command...";
+            recognition.start();
+
+            recognition.onstart = function() {
+                document.getElementById('output').innerHTML = "Listening... Speak now!";
+            };
+
+            recognition.onspeechend = function() {
+                document.getElementById('output').innerHTML = "Processing command...";
+                recognition.stop();
+            };
+
+            recognition.onerror = function(event) {
+                document.getElementById('output').innerHTML = "Error occurred: " + event.error;
+            };
+
+            recognition.onresult = function(event) {
+                const command = event.results[0][0].transcript;
+                document.getElementById('output').innerHTML = "You said: " + command;
+
+                fetch(`http://127.0.0.1:8000/command?command=${encodeURIComponent(command)}`, {
+                    method: 'GET',
+                })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('output').innerHTML += "<br>Response: " + data.response;
+                    const utterance = new SpeechSynthesisUtterance(data.response);
+                    window.speechSynthesis.speak(utterance);
+
+                    setTimeout(() => startListening(), 3000); 
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('output').innerHTML = "Error occurred: " + error;
+                });
+            };
+        }
+    </script>
+</body>
+</html>

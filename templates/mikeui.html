@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Assistant</title>
+   
+</head>
+<body>
+    <div class="container">
+        <h2>Voice Assistant</h2>
+        <button onclick="startListening()">Start Voice Command</button>
+        <div class="output" id="output"></div>
+    </div>
+
+    <script>
+        // Initialize SpeechRecognition API
+        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.lang = 'en-US';
+        recognition.interimResults = false;
+
+        // Function to start listening for voice command
+        function startListening() {
+            recognition.start();
+            recognition.onresult = function(event) {
+                const command = event.results[0][0].transcript;  // Get the spoken text
+                document.getElementById('output').innerHTML = "You said: " + command;
+
+                // Send the spoken command to the server
+                fetch('127.0.0.1:8000/command', {  // Make sure this URL matches your backend
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ command: command }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('output').innerHTML += "<br>Response: " + data.response;
+
+                    // Use SpeechSynthesis to speak the response
+                    const utterance = new SpeechSynthesisUtterance(data.response);
+                    window.speechSynthesis.speak(utterance);
+                })
+                .catch(error => console.error('Error:', error));
+            };
+        }
+    </script>
+</body>
+</html>
