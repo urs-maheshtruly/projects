@@ -1,4 +1,4 @@
-# projects
+# voice assistand with python , suing fast api
 you can find some some useful things here
 
 
