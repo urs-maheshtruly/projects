@@ -1,4 +1,4 @@
-# voice assistand with python , suing fast api
+# voice assistand with python , using fast api
 you can find some some useful things here
 
 
